@@ -1,5 +1,7 @@
 class Validator {
-  constructor() {}
+  constructor() {
+    this.errors = {};
+  }
 
   getValidation(inputId, rules, customMessage = {}, customStyles = {}) {
     const inputElement = document.getElementById(inputId);
@@ -15,9 +17,62 @@ class Validator {
     this.validateInput(inputElement, rules, customMessage, customStyles);
   }
 
-  validateInput(inputElement, rules, customMessage, customStyles) {}
+  validateInput(inputElement, rules, customMessage, customStyles) {
+    const value = inputElement.value;
+    this.errors[inputElement.id] = [];
+    for (const rule of rules) {
+      const [ruleName, params] = rule.split(":");
+      const validationMethod = this[ruleName];
+
+      if (validationMethod && !validationMethod.call(this, value, params)) {
+        this.errors[inputElement.id].push(
+          this.getErrorMessage(ruleName, customMessage, params)
+        );
+      }
+    }
+    this.showErrors(inputElement, customStyles);
+  }
+
+  required(value) {
+    return value !== "";
+  }
+
+  minLength(value, length) {
+    return value.length >= length;
+  }
+
+  maxLength(value, length) {
+    return value.length <= length;
+  }
+
+  getErrorMessage(ruleName, customMessage, params) {
+    const defaultMessages = {
+      required: "This field is required!",
+      minLength: `Min length limit is ${params}`,
+      maxLength: `Max length limit is ${params}`,
+    };
+    return customMessage[ruleName] || defaultMessages[ruleName];
+  }
+
+  showErrors(inputElement, customStyles) {
+    let errorContainer = inputElement.nextElementSibling;
+    if (!errorContainer) errorContainer = document.createElement("div");
+    errorContainer.classList.add("error_message");
+    inputElement.parentNode.insertBefore(
+      errorContainer,
+      inputElement.nextSibling
+    );
+
+    errorContainer.innerHTML = this.errors[inputElement.id].join("<br>");
+    Object.assign(errorContainer.style, customStyles);
+  }
 }
 
 let validator1 = new Validator();
 
-validator1.getValidation("username", ["required", "minLength:3"]);
+validator1.getValidation(
+  "username",
+  ["required", "minLength:3", "maxLength:5"],
+  // { minLength: "Min length should be at least 3 character" },
+  { color: "red" }
+);
