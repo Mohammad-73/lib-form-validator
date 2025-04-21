@@ -66,6 +66,16 @@ class Validator {
     errorContainer.innerHTML = this.errors[inputElement.id].join("<br>");
     Object.assign(errorContainer.style, customStyles);
   }
+
+  validateForm(inputIds) {
+    let isValid = true;
+    for (let inputId of inputIds) {
+      if (this.errors[inputId] && this.errors[inputId].length > 0) {
+        isValid = false;
+      }
+    }
+    return isValid;
+  }
 }
 
 let validator1 = new Validator();
@@ -74,5 +84,22 @@ validator1.getValidation(
   "username",
   ["required", "minLength:3", "maxLength:5"],
   // { minLength: "Min length should be at least 3 character" },
-  { color: "red" }
+  { color: "tomato" }
 );
+validator1.getValidation(
+  "first_name",
+  ["required", "minLength:7", "maxLength:10"],
+  // { minLength: "Min length should be at least 3 character" },
+  { color: "tomato" }
+);
+
+let my_form = document.getElementById("my_form");
+
+my_form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (!validator1.validateForm(["username", "first_name"])) {
+    console.log("Not valid form");
+  } else {
+    console.log("Form is valid");
+  }
+});
