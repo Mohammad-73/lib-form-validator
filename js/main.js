@@ -37,6 +37,11 @@ class Validator {
     return value !== "";
   }
 
+  email(value) {
+    const emailPattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    return emailPattern.test(value);
+  }
+
   minLength(value, length) {
     return value.length >= length;
   }
@@ -45,11 +50,18 @@ class Validator {
     return value.length <= length;
   }
 
+  pattern(value, regex) {
+    const pattern = new RegExp(regex);
+    return pattern.test(value);
+  }
+
   getErrorMessage(ruleName, customMessage, params) {
     const defaultMessages = {
       required: "This field is required!",
       minLength: `Min length limit is ${params}`,
       maxLength: `Max length limit is ${params}`,
+      email: "Email is not valid",
+      pattern: "Value is not valid",
     };
     return customMessage[ruleName] || defaultMessages[ruleName];
   }
@@ -80,24 +92,25 @@ class Validator {
 
 let validator1 = new Validator();
 
-validator1.getValidation(
-  "username",
-  ["required", "minLength:3", "maxLength:5"],
-  // { minLength: "Min length should be at least 3 character" },
-  { color: "tomato" }
-);
+validator1.getValidation("username", [
+  "required",
+  "minLength:3",
+  "maxLength:5",
+]);
 validator1.getValidation(
   "first_name",
-  ["required", "minLength:7", "maxLength:10"],
-  // { minLength: "Min length should be at least 3 character" },
-  { color: "tomato" }
+  ["required", "pattern:^[A-Za-z][A-Za-z-z0-9_]{7,29}$"],
+  {
+    pattern: "Username should contain letter, number and underscore.",
+  }
 );
+validator1.getValidation("email", ["required", "email"]);
 
 let my_form = document.getElementById("my_form");
 
 my_form.addEventListener("submit", (e) => {
   e.preventDefault();
-  if (!validator1.validateForm(["username", "first_name"])) {
+  if (!validator1.validateForm(["username", "first_name", "email"])) {
     console.log("Not valid form");
   } else {
     console.log("Form is valid");
